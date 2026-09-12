@@ -1,122 +1,121 @@
 /* ============================================================
-   channels.js  —  Channel API / link layer
-   ------------------------------------------------------------
-   Everything that points at a remote playlist lives here, so the
-   UI logic in app.js stays clean and you never edit markup to
-   add or remove a tab.
+   channels.js — Sports + Football + Bangladesh.
 
-   Every source is a real iptv-org category/country playlist:
-     https://iptv-org.github.io/iptv/categories/<name>.m3u
-     https://iptv-org.github.io/iptv/countries/<cc>.m3u
-   They are regenerated daily upstream, so there is nothing to
-   maintain by hand.
-
-   Per-source options understood by app.js:
-     label       tab text
-     url         playlist URL
-     limit       0 = no cap, N = cap rendered rows (keeps the DOM light)
-     onlySports  keep only records whose group mentions "sport"
-     match       keyword whitelist run against name + group
+   Both "Sports" and "Football" pull from the same iptv-org
+   sports.m3u. The difference is only filtering:
+     Sports    → raw file (every sport)
+     Football  → broadcaster keyword match (channels likely to
+                 carry football matches)
+   There is no such thing as a football-only channel list, so
+   "Football" here means "sports broadcasters that air football".
    ============================================================ */
+
+const SPORTS_URL     = "https://iptv-org.github.io/iptv/categories/sports.m3u";
+const BANGLADESH_URL = "https://iptv-org.github.io/iptv/countries/bd.m3u";
+
+/* Your pre-filtered Gist (deep-checked, working streams only).
+   Used as a DROP-IN replacement for SPORTS_URL so the app never
+   has to deal with dead links. Set to "" to fall back to the
+   live iptv-org URL. */
+const MY_SPORTS_URL =
+    "https://gist.githubusercontent.com/hakkarrr/2a96e28ae8f8155889298eaf7a71df7a/raw/gistfile1.txt";
+
+/* Sports broadcasters that carry football. Matched against name +
+   group-title. This is a BROAD list on purpose — the goal is
+   "channels that show football", not "channels named football". */
+const FOOTBALL_BROADCASTERS = [
+    /* Dedicated football channels (rare, but exist) */
+    "football", "futbol", "fútbol", "soccer",
+    "laliga", "la liga", "serie a", "bundesliga", "ligue 1",
+    "premier league", "champions league", "europa league",
+    "real madrid", "barcelona tv", "barca tv", "fifa", "uefa",
+
+    /* Big multi-sport broadcasters that air football */
+    "sky sport", "sky calcio", "sky sports",
+    "bein sport", "bein sports",
+    "espn", "fox sport", "fox deportes", "cbs sport", "tnt sport",
+    "dazn", "premier sport", "sportsnet", "tsn",
+    "supersport", "astro supersport",
+    "star sport", "star sports select",
+    "canal+ sport", "canal sport", "sport tv", "eleven sport",
+    "viaplay", "optus sport", "ziggo sport", "movistar",
+    "rmc sport", "sportklub", "nova sport", "arena sport",
+    "max sport", "digi sport", "prima sport", "sport1",
+    "bt sport", "eurosport", "v sport", "tv2 sport",
+    "match tv", "match!", "match futbol",
+    "t sports", "a sports", "dd sport", "ptv sport", "ten sport",
+    "willow", "tyc sport", "win sport", "l1 max",
+    "n sports", "atg live", "m sports"
+];
 
 const CHANNEL_SOURCES = {
 
-    /* ---- Popular football ----
-       The iptv-org "sports" category has no league metadata
-       (group-title is just "Sports"), so the big competitions are
-       reached by matching the broadcasters that actually carry
-       them. Verified present in the live list: ESPN / ESPNU /
-       beIN SPORTS XTRA / Premier Sports / DAZN / FIFA+ / SporTV. */
-    football: {
-        label: "Football",
-        url: "https://iptv-org.github.io/iptv/categories/sports.m3u",
-        limit: 0,
-        match: [
-            "espn", "bein", "premier sports", "dazn", "fifa",
-            "sportv", "sky sport", "canal+ sport", "supersport",
-            "football", "futbol", "f\u00fatbol", "soccer",
-            "liga", "uefa", "champions", "copa", "serie a",
-            "bundesliga", "eredivisie", "ligue 1", "match"
-        ]
+    /* ---- Sports: everything, unfiltered ---- */
+    sports: {
+        label: "Sports",
+        url: MY_SPORTS_URL || SPORTS_URL,
+        limit: 0
     },
 
-    /* ---- Everything sporty ---- */
-    sports: {
-        label: "All Sports",
-        url: "https://iptv-org.github.io/iptv/categories/sports.m3u",
-        limit: 0
+    /* ---- Football: sports broadcasters likely to carry football ---- */
+    football: {
+        label: "Football",
+        url: MY_SPORTS_URL || SPORTS_URL,
+        limit: 0,
+        bucket: "Football",
+        match: FOOTBALL_BROADCASTERS
     },
 
     /* ---- Bangladesh ---- */
     bangladesh: {
         label: "Bangladesh",
-        url: "https://iptv-org.github.io/iptv/countries/bd.m3u",
-        limit: 0
+        url: BANGLADESH_URL,
+        limit: 0,
+        bucket: "Bangladesh"
     },
 
-    /* ---- Cartoons ---- */
-    cartoons: {
-        label: "Cartoons",
-        url: "https://iptv-org.github.io/iptv/categories/animation.m3u",
-        limit: 0
+    /* ---- Personal slots ---- */
+    myCricket: {
+        label: "My Cricket",
+        url: "",
+        limit: 0,
+        bucket: "Cricket"
     },
-
-    kids: {
-        label: "Kids",
-        url: "https://iptv-org.github.io/iptv/categories/kids.m3u",
-        limit: 200
-    },
-
-    movies: {
-        label: "Movies",
-        url: "https://iptv-org.github.io/iptv/categories/movies.m3u",
-        limit: 250
-    },
-
-    news: {
-        label: "News",
-        url: "https://iptv-org.github.io/iptv/categories/news.m3u",
-        limit: 200
-    },
-
-    music: {
-        label: "Music",
-        url: "https://iptv-org.github.io/iptv/categories/music.m3u",
-        limit: 200
-    },
-
-    documentary: {
-        label: "Docs",
-        url: "https://iptv-org.github.io/iptv/categories/documentary.m3u",
-        limit: 0
-    },
-
-    /* ---- Fallback firehose ---- */
-    all: {
-        label: "All",
-        url: "https://iptv-org.github.io/iptv/index.m3u",
-        limit: 600
+    myBangladesh: {
+        label: "My BD",
+        url: "",
+        limit: 0,
+        bucket: "Bangladesh"
     }
 };
 
-/* Tab order in the sidebar. Any key missing here is appended. */
 const SOURCE_ORDER = [
-    "football",
-    "sports",
-    "bangladesh",
-    "cartoons",
-    "kids",
-    "movies",
-    "news",
-    "music",
-    "documentary",
-    "all"
+    "football", "sports", "bangladesh",
+    "myCricket", "myBangladesh"
 ];
 
-/* Extensions we are willing to hand to the video element. */
+const BOOT_SOURCES = ["football", "sports", "bangladesh"];
+
 const STREAM_EXTENSIONS = [".m3u8", ".mpd", ".mp4", ".webm", ".ogg", ".ts", ".mkv"];
 
-/* Which tab opens on load (and is the fallback for a bad key). */
-const DEFAULT_SOURCE = "all";
+const DEFAULT_SOURCE = "football";
 
 const PLAYLIST_TIMEOUT_MS = 20000;
+const SCAN_CONCURRENCY    = 12;
+const SCAN_TIMEOUT_MS     = 3000;
+
+const SEARCH_ALL_TABS     = true;
+const SEARCH_RESULT_LIMIT = 400;
+
+const HIDE_CATEGORIES = [
+    "News", "Kids", "Music", "Documentary",
+    "Animation", "Cartoons", "Undefined", "Uncategorised"
+];
+
+const COLLAPSED_CATEGORIES = [
+    { name: "Football", match: ["Football", "Soccer"] },
+    { name: "Cricket",  match: ["Cricket"] },
+    { name: "Sports",   match: ["Sports", "Outdoor", "Auto", "Series", "Culture"] }
+];
+
+const CHIP_PRIORITY = ["Football", "Sports", "Cricket", "Bangladesh"];
