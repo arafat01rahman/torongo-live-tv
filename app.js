@@ -51,7 +51,8 @@
     /* ---------------- State ---------------- */
     const state = {
         source: typeof DEFAULT_SOURCE === "string" ? DEFAULT_SOURCE : "sports",
-        channels: [],          // channels of the selected tab
+        channels: [],          // channels of the selected tab (limited for rendering)
+        allChannels: [],       // FULL parsed list for the current tab (used by search on "all")
         searchPool: [],        // channels of every tab, built lazily
         searchPoolBuilt: false,
         searching: false,      // a query is active right now
@@ -290,24 +291,24 @@
 
             if (source.onlySports) {
                 const onlySports = parsed.filter(ch => isSports(ch.group));
-                if (onlySports.length) parsed = onlySports; // keep category file honest
+                if (onlySports.length) parsed = onlySports;
             }
 
             if (Array.isArray(source.match) && source.match.length) {
                 const matched = parsed.filter(ch => matchesKeywords(ch, source.match));
-                /* Only narrow the list if the whitelist actually found
-                   something — an empty tab is worse than a broad one. */
                 if (matched.length) parsed = matched;
             }
+
+            /* Keep the FULL parsed list for search, then apply the render
+               limit so the DOM never has to hold thousands of rows. */
+            const key = sourceKey || state.source;
+            parsed.forEach(ch => { ch.sourceKey = key; });
+
+            state.allChannels = parsed.slice();
 
             if (source.limit > 0 && parsed.length > source.limit) {
                 parsed = parsed.slice(0, source.limit);
             }
-
-            /* Tag every channel with the tab it came from so the
-               cross-tab search can badge its results. */
-            const key = sourceKey || state.source;
-            parsed.forEach(ch => { ch.sourceKey = key; });
 
             state.channels = parsed;
             state.searchPool = parsed.slice();
@@ -419,10 +420,14 @@
             return;
         }
 
-        state.filtered = (SEARCH_ALL_SOURCES ? state.searchPool : state.channels)
-            .filter(ch =>
+        state.filtered = (() => {
+            const base = (state.source === "all" && state.allChannels.length)
+                ? state.allChannels
+                : (SEARCH_ALL_SOURCES ? state.searchPool : state.channels);
+            return base.filter(ch =>
                 ch.name.toLowerCase().includes(q) || (ch.group || "").toLowerCase().includes(q)
             );
+        })();
 
         state.searching = true;
         renderSearchScope();
