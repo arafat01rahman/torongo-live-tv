@@ -1,0 +1,670 @@
+/* ============================================================
+   Streamly — fast IPTV UI, themeable light + dark
+   ------------------------------------------------------------
+   Look: flat surfaces, one accent, system fonts.
+   Fast: no backdrop-filter, no color-mix, no animated glows,
+         no full-viewport gradients, no transition on the video
+         element or the channel list.
+
+   THEMING
+   -------
+   Every colour comes from a token in :root (dark = default).
+   A light theme overrides just those tokens under
+   html[data-theme="light"], so the two themes can never drift.
+
+   Tweak a theme by editing only the two token blocks below —
+   no rule further down hard-codes a colour except for the video
+   stage, which stays dark on purpose (a media player should not
+   flash white around letterboxed video).
+
+   Class contract used by app.js (do not rename):
+     #status-line #tabs .tab #search-input #channel-list
+     .channel-item .active .msg .err .num #count-line
+     #reload-btn #video-player #overlay .hidden #overlay-title
+     #overlay-msg #spinner .led #now-name #now-state
+     #volume-down #volume-up #mute-btn #next-btn
+   ============================================================ */
+
+/* ---------- DARK (default) ---------- */
+:root {
+    color-scheme: dark;
+
+    --bg: #0a0c10;
+    --panel: #101419;
+    --card: #151922;
+    --input: #12161f;
+
+    /* interactive surfaces */
+    --hover: #1a1f2b;
+    --active-surface: #1e2433;
+    --scroll-thumb: #333c52;
+
+    --line: #232838;
+    --line-soft: #1c2130;
+
+    --text: #e9ecf3;
+    --muted: #8a93a8;
+    --muted-2: #5f6879;
+
+    /* accent pair + readable text drawn on top of the accent */
+    --accent: #7c5cff;
+    --accent-2: #00d4ff;
+    --accent-ink: #ffffff;
+    --accent-hover: #6b4ff2;
+    --accent-press: #5f45e0;
+    --selection: rgba(124, 92, 255, .4);
+
+    --err: #ff6b6b;
+    --ok: #43d17c;
+
+    /* media stage is always dark in both themes */
+    --stage: #05070a;
+    --stage-shell: #0d1017;
+    --stage-veil: rgba(8, 10, 14, .8);
+    --stage-line: rgba(255, 255, 255, .14);
+
+    --radius: 12px;
+}
+
+/* ---------- LIGHT ---------- */
+html[data-theme="light"] {
+    color-scheme: light;
+
+    --bg: #f2f4f9;
+    --panel: #ffffff;
+    --card: #ffffff;
+    --input: #f5f7fb;
+
+    --hover: #eef1f8;
+    --active-surface: #e7ecf9;
+    --scroll-thumb: #c3cbdb;
+
+    --line: #dde3ee;
+    --line-soft: #e8ecf4;
+
+    --text: #131a2a;
+    --muted: #5c6880;
+    --muted-2: #8b95a8;
+
+    /* accents are darkened so they keep contrast on white, and the
+       button text flips to white to stay readable on that accent */
+    --accent: #6d4aff;
+    --accent-2: #0aa2d8;
+    --accent-ink: #ffffff;
+    --accent-hover: #5f3cf5;
+    --accent-press: #5433e4;
+    --selection: rgba(109, 74, 255, .25);
+
+    --err: #d92d2d;
+    --ok: #16a34a;
+
+    --stage: #05070a;
+    --stage-shell: #0d1017;
+    --stage-veil: rgba(8, 10, 14, .8);
+    --stage-line: rgba(255, 255, 255, .14);
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--text);
+    /* single flat colour: no full-viewport gradient to re-rasterise */
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+}
+
+button, input { font: inherit; color: inherit; }
+
+button {
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+::selection { background: var(--selection); }
+
+/* Visible focus for keyboard users, using the accent token so it
+   works in both themes. */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* ---------- Shell ---------- */
+
+.app {
+    display: grid;
+    grid-template-columns: 290px 1fr;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ---------- Sidebar ---------- */
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+    padding: 18px 14px 14px;
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 0 6px;
+}
+
+.brand-mark {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    /* cheap two-stop gradient on a 34px box */
+    background: linear-gradient(140deg, var(--accent), var(--accent-2));
+}
+
+.brand-mark svg { width: 18px; height: 18px; color: var(--accent-ink); }
+
+.brand h1 {
+    margin: 0;
+    font-size: 16.5px;
+    font-weight: 700;
+    letter-spacing: -.2px;
+}
+
+.brand span {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted-2);
+}
+
+.status {
+    padding: 8px 11px;
+    font-size: 11.5px;
+    letter-spacing: .4px;
+    color: var(--muted);
+    background: var(--input);
+    border: 1px solid var(--line-soft);
+    border-radius: 9px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.status.err { color: var(--err); }
+
+/* Tabs wrap into rows instead of being crushed into one line.
+   Capped height so a long tab list can never swallow the sidebar. */
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 132px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+.tabs::-webkit-scrollbar { width: 8px; }
+
+.tabs::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb);
+    border-radius: 4px;
+}
+
+.tab {
+    flex: 0 0 auto;
+    padding: 7px 12px;
+    font-size: 12.5px;
+    font-weight: 550;
+    white-space: nowrap;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    transition: background .12s, color .12s, border-color .12s;
+}
+
+.tab:hover { color: var(--text); border-color: var(--scroll-thumb); }
+
+.tab.active {
+    color: var(--accent-ink);
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.search {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search svg {
+    position: absolute;
+    left: 12px;
+    width: 15px;
+    height: 15px;
+    color: var(--muted-2);
+    pointer-events: none;
+}
+
+.search input {
+    width: 100%;
+    padding: 9px 12px 9px 36px;
+    font-size: 13px;
+    background: var(--input);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    outline: none;
+    transition: border-color .12s;
+}
+
+.search input::placeholder { color: var(--muted-2); }
+
+.search input:focus { border-color: var(--accent); }
+
+/* Shown only while a search is sweeping every tab. */
+.search-scope {
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--muted-2);
+    padding: 0 2px;
+}
+
+.search-scope b { color: var(--accent); font-weight: 650; }
+
+.search-scope[hidden] { display: none; }
+
+/* ---------- Channel list ---------- */
+
+.list-wrap {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+.list-wrap::-webkit-scrollbar { width: 8px; }
+
+.list-wrap::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb);
+    border-radius: 4px;
+}
+
+.channel-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.channel-list li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 11px;
+    margin-bottom: 1px;
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* no transition: list swapping should never animate */
+}
+
+.channel-list li { content-visibility: auto; contain-intrinsic-size: auto 31px; }
+
+.channel-list li:hover { background: var(--hover); }
+
+.channel-list li.active {
+    background: var(--active-surface);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.channel-list li .num {
+    flex: none;
+    min-width: 26px;
+    font-size: 11px;
+    color: var(--muted-2);
+    font-variant-numeric: tabular-nums;
+}
+
+.channel-list li.active .num { color: var(--accent); }
+
+.channel-list li .label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Which tab a channel came from — only rendered during a
+   cross-tab search, so it never costs space in the normal list. */
+.channel-list li .src {
+    flex: none;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .3px;
+    color: var(--muted-2);
+    background: var(--input);
+    border: 1px solid var(--line-soft);
+    border-radius: 99px;
+    padding: 1px 7px;
+}
+
+.channel-list li.msg {
+    display: block;
+    cursor: default;
+    padding: 8px 11px;
+    font-size: 12.5px;
+    color: var(--muted);
+    white-space: normal;
+}
+
+.channel-list li.msg.err { color: var(--err); }
+
+/* ---------- Sidebar footer ---------- */
+
+.side-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 12px;
+    font-size: 12px;
+    color: var(--muted-2);
+    border-top: 1px solid var(--line-soft);
+}
+
+/* ---------- Main ---------- */
+
+.main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: none;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line-soft);
+}
+
+.topbar h2 {
+    margin: 0;
+    font-size: 15.5px;
+    font-weight: 650;
+}
+
+.topbar-tools {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pill {
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted-2);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 99px;
+}
+
+/* ---------- Theme toggle ---------- */
+
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px solid var(--line);
+    transition: background .12s, color .12s, border-color .12s;
+}
+
+.theme-toggle svg { width: 17px; height: 17px; }
+
+.theme-toggle:hover {
+    color: var(--text);
+    border-color: var(--scroll-thumb);
+}
+
+.theme-toggle:active { background: var(--hover); }
+
+/* One glyph per theme: the icon shows the mode you would switch TO. */
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon { display: none; }
+
+html[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+
+.content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px 22px 28px;
+}
+
+/* ---------- Player ---------- */
+
+.player {
+    overflow: hidden;
+    background: var(--stage-shell);
+    /* the shell is dark in both themes, so the border must not
+       follow --line (which turns near-white in light mode) */
+    border: 1px solid var(--stage-line);
+    border-radius: 16px;
+    margin-bottom: 16px;
+}
+
+.stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 62vh;
+    background: var(--stage);
+}
+
+.stage video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    background: var(--stage);
+}
+
+/* ---------- Overlay ---------- */
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+    color: #e9ecf3; /* always light: it sits on the dark stage */
+    background: var(--stage-veil);
+    transition: opacity .18s ease;
+}
+
+.overlay.hidden { opacity: 0; pointer-events: none; }
+
+.overlay__inner { max-width: 400px; }
+
+.overlay__big {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 650;
+}
+
+.overlay__small {
+    margin: 0;
+    font-size: 12.8px;
+    color: #8a93a8; /* fixed: stage is dark in both themes */
+}
+
+.spinner {
+    width: 30px;
+    height: 30px;
+    margin: 16px auto 0;
+    border: 3px solid var(--stage-line);
+    border-top-color: var(--accent-2);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Now playing ---------- */
+
+.now {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #e9ecf3;
+    background: var(--stage-shell);
+    border-top: 1px solid var(--stage-line);
+}
+
+.led {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #475069;
+}
+
+.led.on { background: var(--ok); }
+
+.now-name {
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.now-state {
+    flex: none;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: #8a93a8; /* fixed: sits on the dark stage shell */
+}
+
+/* ---------- Buttons / controls ---------- */
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 15px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: background .12s, color .12s, border-color .12s;
+}
+
+.btn svg { width: 15px; height: 15px; }
+
+.btn-ghost {
+    color: var(--muted);
+    background: var(--card);
+    border: 1px solid var(--line);
+}
+
+.btn-ghost:hover { color: var(--text); border-color: var(--scroll-thumb); }
+
+.btn-ghost:active { background: var(--hover); }
+
+.btn-primary {
+    color: var(--accent-ink);
+    background: var(--accent);
+}
+
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-primary:active { background: var(--accent-press); }
+
+.disclaimer {
+    margin: 0;
+    font-size: 11.5px;
+    color: var(--muted-2);
+}
+
+.disclaimer em { color: var(--muted); font-style: normal; }
+
+/* ---------- Motion preference ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+    .spinner { animation-duration: 2.4s; }
+}
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 900px) {
+    .app {
+        grid-template-columns: 1fr;
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+    }
+
+    .sidebar {
+        max-height: 52vh;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .stage { max-height: none; }
+
+    .content { padding: 16px; }
+
+    .topbar { padding: 12px 16px; }
+}
