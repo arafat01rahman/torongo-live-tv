@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0c10" id="meta-theme-color">
+<title>About Developer · TV Dekho</title>
+
+<script>
+    /* Match the theme the main app is using. Runs before paint. */
+    (function () {
+        try {
+            var saved = localStorage.getItem("streamly-theme");
+            var theme = (saved === "light" || saved === "dark")
+                ? saved
+                : (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches
+                    ? "light" : "dark");
+            document.documentElement.setAttribute("data-theme", theme);
+            var m = document.getElementById("meta-theme-color");
+            if (m) m.setAttribute("content", theme === "light" ? "#f2f4f9" : "#0a0c10");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    })();
+</script>
+
+<style>
+:root {
+    --bg:        #0a0c10;
+    --bg-soft:   #12151c;
+    --card:      #171b24;
+    --line:      rgba(255,255,255,0.08);
+    --text:      #e8ebf2;
+    --text-dim:  rgba(232,235,242,0.62);
+    --accent:    #7c5cff;
+    --accent-2:  #5b3fd9;
+    --shadow:    0 20px 40px rgba(0,0,0,0.45);
+}
+
+[data-theme="light"] {
+    --bg:        #f2f4f9;
+    --bg-soft:   #ffffff;
+    --card:      #ffffff;
+    --line:      rgba(0,0,0,0.08);
+    --text:      #10131a;
+    --text-dim:  rgba(16,19,26,0.6);
+    --shadow:    0 20px 40px rgba(20,30,60,0.12);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 60px;
+}
+
+/* ---------- Top bar ---------- */
+.top {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+.back-btn:hover {
+    transform: translateX(-2px);
+    background: var(--card);
+}
+.back-btn svg { width: 16px; height: 16px; }
+
+.top__title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+/* ---------- Card ---------- */
+.card {
+    width: 100%;
+    max-width: 640px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    padding: 40px 32px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    top: -120px; left: 50%;
+    width: 340px; height: 340px;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(124,92,255,0.32), transparent 70%);
+    pointer-events: none;
+}
+
+/* ---------- Avatar ---------- */
+.avatar {
+    position: relative;
+    width: 108px;
+    height: 108px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent) 0%, #4a90e2 100%);
+    box-shadow: 0 14px 32px rgba(124,92,255,0.45);
+    z-index: 1;
+}
+.avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.avatar span { position: relative; z-index: 0; }
+
+/* ---------- Name + role ---------- */
+.name {
+    margin: 0 0 6px;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+}
+.role {
+    margin: 0 0 26px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-dim);
+}
+
+/* ---------- Bio ---------- */
+.bio {
+    text-align: left;
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--text);
+    margin: 0 0 28px;
+}
+
+/* ---------- Stats ---------- */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 26px;
+}
+.stat {
+    padding: 16px 8px;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(124,92,255,0.10);
+    border: 1px solid rgba(124,92,255,0.24);
+}
+.stat__value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #a48bff;
+    letter-spacing: -0.3px;
+}
+[data-theme="light"] .stat__value { color: var(--accent-2); }
+
+.stat__label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-dim);
+}
+
+/* ---------- Skills ---------- */
+.skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+.tag {
+    font-size: 12.5px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--line);
+    color: var(--text);
+}
+[data-theme="light"] .tag { background: rgba(0,0,0,0.035); }
+
+/* ---------- GitHub button ---------- */
+.gh {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 26px;
+    border-radius: 14px;
+    font-size: 14.5px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    box-shadow: 0 10px 26px rgba(124,92,255,0.42);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.gh:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 34px rgba(124,92,255,0.55);
+}
+.gh svg { width: 20px; height: 20px; }
+
+/* ---------- Footer ---------- */
+.foot {
+    margin-top: 32px;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: center;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 480px) {
+    .card { padding: 32px 22px 26px; border-radius: 20px; }
+    .stats { grid-template-columns: 1fr; }
+    .name { font-size: 22px; }
+    .avatar { width: 92px; height: 92px; font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+    <a class="back-btn" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 6l-6 6 6 6"/>
+        </svg>
+        Back
+    </a>
+    <h1 class="top__title">About Developer</h1>
+</div>
+
+<main class="card">
+
+    <div class="avatar">
+        <img src="https://github.com/arafat01rahman.png?size=240"
+             alt="" onerror="this.remove()">
+        <span>AR</span>
+    </div>
+
+    <h2 class="name">Arafat Rahman</h2>
+    <p class="role">CUET CSE  · Game Developer · Chess Programmer</p>
+
+    <p class="bio">
+        A 3rd semester Computer Science &amp; Engineering student. I build
+        3D story-driven games in Unity with C#, and I compete on Codeforces.
+        Recently I Built a chess engine in C++ using the mailbox board
+        representation — currently sitting around 1300 Elo.
+    </p>
+
+    <div class="stats">
+        <div class="stat">
+            <span class="stat__value">890+</span>
+            <span class="stat__label">Codeforces</span>
+        </div>
+        <div class="stat">
+            <span class="stat__value">1300+</span>
+            <span class="stat__label">Chess Elo</span>
+        </div>
+        <div class="stat">
+            <span class="stat__value">3rd</span>
+            <span class="stat__label">Semester</span>
+        </div>
+    </div>
+
+    <div class="skills">
+        <span class="tag">Unity</span>
+        <span class="tag">C#</span>
+        <span class="tag">C++</span>
+        <span class="tag">Algorithms</span>
+        <span class="tag">3D Game Dev</span>
+        <span class="tag">Chess Engine</span>
+    </div>
+
+    <a class="gh" href="https://github.com/arafat01rahman"
+       target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.25.8-.55v-2c-3.2.7-3.9-1.4-3.9-1.4-.5-1.3-1.3-1.65-1.3-1.65-1.05-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.25 3.4.95.1-.75.4-1.25.75-1.55-2.55-.3-5.25-1.3-5.25-5.7 0-1.25.45-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 .95-.3 3.1 1.2a10.7 10.7 0 0 1 5.6 0c2.15-1.5 3.1-1.2 3.1-1.2.6 1.6.2 2.8.1 3.1.75.8 1.2 1.85 1.2 3.1 0 4.4-2.7 5.4-5.25 5.7.4.35.75 1.05.75 2.1v3.1c0 .3.2.65.8.55 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.65 18.35.5 12 .5z"/>
+        </svg>
+        github.com/arafat01rahman
+    </a>
+
+    <p class="foot">TV Dekho · Built for football &amp; cricket fans in Bangladesh</p>
+
+</main>
+
+</body>
+</html>
