@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">TV Dekho</string>
-    <string name="title_activity_main">TV Dekho</string>
+    <string name="app_name">Torongo</string>
+    <string name="title_activity_main">Torongo</string>
     <string name="package_name">com.hakhar.tvdekho</string>
     <string name="custom_url_scheme">com.hakhar.tvdekho</string>
 </resources>
