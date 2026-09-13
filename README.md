@@ -8,7 +8,7 @@
 [![hls.js](https://img.shields.io/badge/hls.js-1.5-6d4aff)](https://github.com/video-dev/hls.js)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-*An IPTV player that runs entirely in your browser — no backend, no build step, no install.*
+*A Live TV Andoid App(See Releases) and IPTV player that runs entirely in your browser — no backend, no build step, no install.*
 
 ### 🎬 [**Open Torongo →**](https://github.com/arafat01rahman/torongo-live-tv/releases/tag/v1.1)
 <sub>Four files. Zero dependencies. Works offline once loaded.</sub>
