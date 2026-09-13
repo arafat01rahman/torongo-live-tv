@@ -18,7 +18,7 @@
 Torongo turns any M3U playlist into a browsable, searchable TV guide with an embedded HLS player. It fetches public streams, parses them client-side, groups channels by category, and plays them through **hls.js** or the browser's native HLS engine.
 
 <div align="center">
-  <img src="image_bappi.jpg" alt="Torongo" width="720"/>
+  <img src="image_bappi.jpg" alt="Torongo" width="360"/>
 </div>
 
 ---
