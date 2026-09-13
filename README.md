@@ -10,7 +10,7 @@
 
 *A Live TV Andoid App(See Releases) and IPTV player that runs entirely in your browser — no backend, no build step, no install.*
 
-### 🎬 [**Open Torongo →**](https://github.com/arafat01rahman/torongo-live-tv/releases/tag/v1.1)
+### 🎬 [**Install Torongo in your Mobile →**](https://github.com/arafat01rahman/torongo-live-tv/releases/tag/v1.1)
 <sub>Four files. Zero dependencies. Works offline once loaded.</sub>
 
 </div>
